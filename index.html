@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Websity Digital – Website Audit Tool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- PDF libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #020617;
+      --accent: #1cd4e0;
+      --accent-2: #007dff;
+      --accent-soft: rgba(28,212,224,0.12);
+      --text-main: #f9fafb;
+      --text-soft: #9ca3af;
+      --text-muted: #6b7280;
+      --border: #111827;
+      --danger: #f97373;
+      --warning: #fbbf24;
+      --success: #22c55e;
+      --font: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at top left, rgba(28,212,224,0.16), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(0,125,255,0.16), transparent 55%),
+        #020617;
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    .shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+    .chrome {
+      background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98));
+      border-radius: 24px;
+      border: 1px solid rgba(148,163,184,0.28);
+      box-shadow:
+        0 32px 80px rgba(0,0,0,0.85),
+        0 0 0 1px rgba(15,23,42,0.85);
+      padding: 22px 22px 20px;
+      backdrop-filter: blur(18px);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 20% 10%, #1cd4e0, #007dff 55%, #0f172a);
+      box-shadow: 0 0 24px rgba(28,212,224,0.9);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+    .chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.96);
+      color: var(--text-soft);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chip span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 12px rgba(34,197,94,0.9);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 18px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    @media (max-width: 920px) {
+      .hero { grid-template-columns: minmax(0,1fr); }
+    }
+    .hero-tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.8);
+      background: rgba(15,23,42,0.96);
+      color: var(--accent);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .hero-tagline span.indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(28,212,224,0.9);
+    }
+    .hero-title {
+      font-size: clamp(24px, 3vw, 30px);
+      font-weight: 650;
+      margin: 0 0 6px;
+    }
+    .hero-sub {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin: 0 0 14px;
+      max-width: 520px;
+    }
+    .scan-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: stretch;
+      margin-bottom: 6px;
+    }
+    .url-shell {
+      flex: 1 1 260px;
+      display: flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.98), rgba(15,23,42,0.92));
+      padding: 3px 14px;
+      gap: 8px;
+    }
+    .url-prefix {
+      font-size: 12px;
+      color: var(--text-soft);
+      border-right: 1px solid #1f2937;
+      padding-right: 8px;
+      margin-right: 2px;
+    }
+    .url-shell input {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 13px;
+      padding: 7px 0;
+      width: 100%;
+    }
+    .url-shell input::placeholder {
+      color: var(--text-muted);
+    }
+    .btn-primary {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #1cd4e0, #007dff);
+      color: #f9fafb;
+      box-shadow:
+        0 20px 45px rgba(0,125,255,0.8),
+        0 0 20px rgba(28,212,224,0.9);
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.08s ease-out;
+      white-space: nowrap;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow:
+        0 26px 60px rgba(0,80,200,0.9),
+        0 0 24px rgba(28,212,224,1);
+    }
+    .btn-primary:active {
+      transform: translateY(1px);
+      box-shadow: 0 12px 28px rgba(15,23,42,0.9);
+    }
+    .btn-primary[disabled] {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-primary .loader {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(248,250,252,0.3);
+      border-top-color: #f9fafb;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hero-right {
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.35);
+      background:
+        radial-gradient(circle at top left, rgba(28,212,224,0.24), transparent 60%),
+        radial-gradient(circle at bottom right, rgba(0,125,255,0.24), transparent 60%),
+        #020617;
+      padding: 14px 14px 12px;
+    }
+    .hero-right-title {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 8px;
+      font-size: 11px;
+    }
+    @media (max-width: 700px) {
+      .badge-grid { grid-template-columns: minmax(0,1fr); }
+    }
+    .badge-pill {
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.96);
+      padding: 4px 9px;
+      color: var(--text-soft);
+    }
+    .badge-pill strong { color: var(--accent); }
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .hint code {
+      font-family: ui-monospace,Menlo,Monaco,monospace;
+      background: rgba(15,23,42,0.96);
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(31,41,55,0.9);
+      color: #e5e7eb;
+    }
+
+    .message {
+      margin-top: 8px;
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.96);
+      border: 1px solid rgba(31,41,55,0.96);
+      color: var(--text-soft);
+    }
+    .message.error {
+      background: rgba(127,29,29,0.9);
+      border-color: rgba(248,113,113,0.8);
+      color: #fee2e2;
+    }
+    .message strong { color: #f9fafb; }
+
+    /* Tabs + view toggle */
+    .toolbar {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .tab-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.9);
+      background: rgba(15,23,42,0.96);
+      color: var(--text-soft);
+      font-size: 11px;
+      padding: 5px 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #1cd4e0, #007dff);
+      color: #f9fafb;
+      box-shadow: 0 0 16px rgba(28,212,224,0.9);
+      border-color: rgba(28,212,224,0.7);
+    }
+    .view-toggle {
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.9);
+      background: rgba(15,23,42,0.96);
+      display: inline-flex;
+      gap: 2px;
+      padding: 3px;
+    }
+    .view-toggle button {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 10px;
+      background: transparent;
+      color: var(--text-soft);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .view-toggle button.active {
+      background: radial-gradient(circle at top left, #1cd4e0, #007dff);
+      color: #f9fafb;
+      box-shadow: 0 0 16px rgba(28,212,224,0.9);
+    }
+    .btn-secondary {
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.96);
+      color: var(--text-soft);
+      font-size: 11px;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .btn-secondary svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Report container for PDF */
+    #report {
+      margin-top: 12px;
+    }
+    .panel {
+      display: none;
+      margin-top: 10px;
+    }
+    .panel.active { display: block; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0,1.4fr) minmax(0,1.6fr);
+      gap: 14px;
+    }
+    @media (max-width: 960px) {
+      .grid-2 { grid-template-columns: minmax(0,1fr); }
+    }
+    .card {
+      background: #020617;
+      border-radius: 18px;
+      border: 1px solid rgba(15,23,42,0.98);
+      padding: 12px 12px 10px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-soft);
+    }
+    .badge-soft {
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.95);
+      background: rgba(15,23,42,0.98);
+      padding: 3px 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .score-main {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .score-label {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+    .score-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      margin-right: 5px;
+      display: inline-block;
+    }
+    .score-dot.good {
+      background: var(--success);
+      box-shadow: 0 0 12px rgba(34,197,94,0.9);
+    }
+    .score-dot.ok {
+      background: var(--warning);
+      box-shadow: 0 0 12px rgba(250,204,21,0.9);
+    }
+    .score-dot.bad {
+      background: var(--danger);
+      box-shadow: 0 0 12px rgba(248,113,113,0.95);
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 8px;
+      font-size: 12px;
+    }
+    .kv-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      align-items: baseline;
+    }
+    .kv-label {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+    .kv-value {
+      font-size: 12px;
+    }
+    .chip-metric {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      color: var(--text-soft);
+      margin-left: 4px;
+    }
+    .chip-metric.good {
+      background: rgba(22,163,74,0.16);
+      color: #4ade80;
+      border-color: rgba(74,222,128,0.7);
+    }
+    .chip-metric.ok {
+      background: rgba(245,158,11,0.16);
+      color: #facc15;
+      border-color: rgba(250,204,21,0.7);
+    }
+    .chip-metric.bad {
+      background: rgba(239,68,68,0.16);
+      color: #f97373;
+      border-color: rgba(248,113,113,0.8);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .table th, .table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(31,41,55,0.9);
+      text-align: left;
+    }
+    .table th {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .mono {
+      font-family: ui-monospace,Menlo,Monaco,monospace;
+      font-size: 11px;
+    }
+
+    .pill-small {
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      padding: 2px 6px;
+      font-size: 10px;
+      color: var(--text-soft);
+      display: inline-block;
+    }
+    .pill-small.warn {
+      background: rgba(245,158,11,0.16);
+      border-color: rgba(250,204,21,0.7);
+      color: #facc15;
+    }
+    .pill-small.danger {
+      background: rgba(239,68,68,0.2);
+      border-color: rgba(248,113,113,0.8);
+      color: #fecaca;
+    }
+    .pill-small.good {
+      background: rgba(22,163,74,0.16);
+      border-color: rgba(74,222,128,0.8);
+      color: #bbf7d0;
+    }
+
+    .list-soft {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    .issues-list {
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 2px;
+      font-size: 12px;
+    }
+    .issue {
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(37,99,235,0.5);
+    }
+    .issue:last-child { border-bottom: none; }
+    .issue-label {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 2px;
+    }
+    .severity {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      margin-left: 4px;
+    }
+    .severity.high {
+      background: rgba(239,68,68,0.18);
+      border-color: rgba(248,113,113,0.8);
+      color: #fecaca;
+    }
+    .severity.medium {
+      background: rgba(245,158,11,0.18);
+      border-color: rgba(250,204,21,0.8);
+      color: #fef3c7;
+    }
+    .severity.low {
+      background: rgba(37,99,235,0.2);
+      border-color: rgba(96,165,250,0.8);
+      color: #bfdbfe;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 10px;
+      font-size: 12px;
+    }
+    @media (max-width: 700px) {
+      .tech-grid { grid-template-columns: minmax(0,1fr); }
+    }
+    .tech-block {
+      border-radius: 14px;
+      border: 1px solid rgba(31,41,55,0.96);
+      padding: 6px 8px;
+    }
+    .tech-title {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 4px;
+    }
+    .tech-item {
+      font-size: 12px;
+      color: var(--text-main);
+    }
+    .tech-item span.sub {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .footer {
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="chrome">
+      <div class="header">
+        <div class="brand">
+          <div class="brand-logo">
+            <!-- replace with your actual logo file -->
+            <img src="webfavico.png" alt="Websity Digital logo">
+          </div>
+          <div>
+            <div class="brand-title">Websity Digital Auditor</div>
+            <div class="brand-sub">Websites on subscription – now with built-in audits.</div>
+          </div>
+        </div>
+        <div class="chip">
+          <span class="dot"></span>
+          Lighthouse · On-page SEO · Tech stack
+        </div>
+      </div>
+
+      <div class="hero">
+        <div>
+          <div class="hero-tagline">
+            <span class="indicator"></span>
+            Scan any site like a mini AIOSEO & Wappalyzer
+          </div>
+          <h1 class="hero-title">Instant audit for performance, SEO & tech stack.</h1>
+          <p class="hero-sub">
+            Drop in a URL and get PageSpeed scores, full heading and link breakdown,
+            meta tags, schema, images without alt, and the technology stack powering the site.
+          </p>
+          <div class="scan-row">
+            <div class="url-shell">
+              <span class="url-prefix">https://</span>
+              <input id="urlInput" type="text" placeholder="websitydigital.com or anydomain.com" />
+            </div>
+            <button id="runBtn" class="btn-primary">
+              <span>Run full audit</span>
+            </button>
+          </div>
+          <div class="hint">
+            Mobile + Desktop are scanned together using Google PageSpeed.
+            Add your API key in <code>API_KEY</code> for higher quota. HTML parsing is done via a free CORS proxy.
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="hero-right-title">This is what your client sees in the report:</div>
+          <div class="badge-grid">
+            <div class="badge-pill"><strong>PageSpeed scores</strong> for mobile &amp; desktop</div>
+            <div class="badge-pill"><strong>Headings &amp; meta</strong> like AIOSEO/RankMath</div>
+            <div class="badge-pill"><strong>Link &amp; image audit</strong> (missing alts, internal/external)</div>
+            <div class="badge-pill"><strong>Tech stack</strong> – CMS, plugins, analytics, GTM &amp; more</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="message" class="message" style="display:none;"></div>
+
+      <!-- toolbar + tabs + view toggle + PDF -->
+      <div id="toolbar" class="toolbar" style="display:none;">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="overview">Overview</button>
+          <button class="tab-btn" data-tab="pagespeed">PageSpeed</button>
+          <button class="tab-btn" data-tab="headings">Headings</button>
+          <button class="tab-btn" data-tab="links">Links</button>
+          <button class="tab-btn" data-tab="images">Images</button>
+          <button class="tab-btn" data-tab="schema">Schema</button>
+          <button class="tab-btn" data-tab="social">Social</button>
+          <button class="tab-btn" data-tab="tech">Technologies</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="view-toggle">
+            <button id="btnMobile" class="active" type="button">Mobile</button>
+            <button id="btnDesktop" type="button">Desktop</button>
+          </div>
+          <button id="pdfBtn" class="btn-secondary" type="button">
+            <svg viewBox="0 0 20 20" fill="none">
+              <path d="M5 11.5L10 16.5L15 11.5" stroke="#e5e7eb" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 3.5V15.5" stroke="#e5e7eb" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 17.5H16" stroke="#6b7280" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+            <span>Download PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Report wrapper (for PDF export) -->
+      <div id="report" style="display:none;">
+
+        <!-- Overview panel -->
+        <div id="panel-overview" class="panel active">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Summary</div>
+                <span id="overallBadge" class="badge-soft"></span>
+              </div>
+              <div style="margin-bottom:6px;font-size:12px;">
+                <div><strong>URL:</strong> <span id="reportUrl" class="mono"></span></div>
+                <div><strong>Language:</strong> <span id="langVal"></span></div>
+                <div><strong>Indexable:</strong> <span id="indexableVal"></span></div>
+              </div>
+              <div style="margin-top:6px;font-size:12px;">
+                <div><strong>Meta Title</strong></div>
+                <div id="metaTitle" class="mono" style="margin:2px 0 4px;"></div>
+                <span id="metaTitleLen" class="pill-small"></span>
+              </div>
+              <div style="margin-top:8px;font-size:12px;">
+                <div><strong>Meta Description</strong></div>
+                <div id="metaDesc" class="mono" style="margin:2px 0 4px;"></div>
+                <span id="metaDescLen" class="pill-small"></span>
+              </div>
+              <div style="margin-top:8px;font-size:12px;">
+                <div><strong>Canonical:</strong> <span id="canonicalVal" class="mono"></span></div>
+                <div><strong>Robots:</strong> <span id="robotsVal" class="mono"></span></div>
+                <div><strong>X-Robots-Tag:</strong> <span id="xrobotsVal" class="mono"></span></div>
+                <div style="margin-top:4px;">
+                  <strong>Words:</strong> <span id="wordCountVal"></span>,
+                  <strong>Characters:</strong> <span id="charCountVal"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Scores &amp; status</div>
+                <span id="scoreLabel" class="badge-soft"></span>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+                <div style="flex:1 1 120px;">
+                  <div class="score-main" id="overallScore">–</div>
+                  <div class="score-label">
+                    <span id="overallDot" class="score-dot"></span>
+                    Overall audit score
+                  </div>
+                </div>
+                <div style="flex:1 1 140px;font-size:12px;">
+                  <div style="margin-bottom:4px;">
+                    <span id="perfDot" class="score-dot"></span>
+                    Performance: <strong id="perfScore">–</strong>/100
+                  </div>
+                  <div style="margin-bottom:4px;">
+                    <span id="seoDot" class="score-dot"></span>
+                    SEO: <strong id="seoScore">–</strong>/100
+                  </div>
+                  <div style="font-size:11px;color:var(--text-soft);">
+                    Toggle mobile / desktop at the top to see how scores change.
+                  </div>
+                </div>
+              </div>
+              <div class="kv-grid">
+                <div class="kv-row">
+                  <span class="kv-label">LCP</span>
+                  <span><span id="lcpVal" class="kv-value">–</span><span id="lcpChip" class="chip-metric">LCP</span></span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">FCP</span>
+                  <span><span id="fcpVal" class="kv-value">–</span><span id="fcpChip" class="chip-metric">FCP</span></span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">CLS</span>
+                  <span><span id="clsVal" class="kv-value">–</span><span id="clsChip" class="chip-metric">CLS</span></span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-label">TBT</span>
+                  <span><span id="tbtVal" class="kv-value">–</span><span id="tbtChip" class="chip-metric">TBT</span></span>
+                </div>
+              </div>
+              <div style="margin-top:8px;font-size:11px;color:var(--text-soft);">
+                Use this as a “before” snapshot in your proposals, then re-run after a Websity build or revamp.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PageSpeed panel -->
+        <div id="panel-pagespeed" class="panel">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Opportunities &amp; diagnostics</div>
+                <span id="issuesCount" class="badge-soft"></span>
+              </div>
+              <div id="issuesList" class="issues-list"></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">How to read this</div>
+              </div>
+              <div class="list-soft">
+                <p style="margin-top:0;">These are the same Lighthouse audits Google uses for Core Web Vitals.</p>
+                <ul style="padding-left:18px;margin:0;">
+                  <li><strong>Red (High impact)</strong> → fix first for big gains.</li>
+                  <li><strong>Yellow</strong> → great quick wins / retainer tasks.</li>
+                  <li><strong>Green</strong> → keep, don’t break them in future dev.</li>
+                </ul>
+                <p style="margin-top:8px;">Pair this with your Websity subscription pitch: “We don’t just launch; we keep this score healthy every month.”</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Headings panel -->
+        <div id="panel-headings" class="panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Heading structure</div>
+              <span id="headingCounts" class="badge-soft"></span>
+            </div>
+            <div id="h1Warning" style="font-size:12px;margin-bottom:6px;"></div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Level</th>
+                  <th>Text</th>
+                </tr>
+              </thead>
+              <tbody id="headingsTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Links panel -->
+        <div id="panel-links" class="panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Links overview</div>
+              <span id="linkSummary" class="badge-soft"></span>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Anchor</th>
+                  <th>URL</th>
+                </tr>
+              </thead>
+              <tbody id="linksTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Images panel -->
+        <div id="panel-images" class="panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Images &amp; alt text</div>
+              <span id="imageSummary" class="badge-soft"></span>
+            </div>
+            <div style="font-size:12px;margin-bottom:6px;" id="imageHint"></div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Alt</th>
+                  <th>Title</th>
+                  <th>Src</th>
+                </tr>
+              </thead>
+              <tbody id="imagesTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Schema panel -->
+        <div id="panel-schema" class="panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Schema (JSON-LD)</div>
+              <span id="schemaSummary" class="badge-soft"></span>
+            </div>
+            <div id="schemaTypes" class="list-soft" style="margin-bottom:6px;"></div>
+            <div style="font-size:11px;color:var(--text-soft);">
+              Full JSON-LD is detected client-side. For a production SaaS, you might store raw schema blocks and show a “view JSON” modal.
+            </div>
+          </div>
+        </div>
+
+        <!-- Social panel -->
+        <div id="panel-social" class="panel">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Open Graph</div>
+              </div>
+              <table class="table">
+                <thead>
+                  <tr><th>Property</th><th>Content</th></tr>
+                </thead>
+                <tbody id="ogTable"></tbody>
+              </table>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Twitter</div>
+              </div>
+              <table class="table">
+                <thead>
+                  <tr><th>Name</th><th>Content</th></tr>
+                </thead>
+                <tbody id="twTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Technologies panel -->
+        <div id="panel-tech" class="panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Detected technologies</div>
+              <span id="techSummary" class="badge-soft"></span>
+            </div>
+            <div id="techGrid" class="tech-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>Powered by Google PageSpeed + HTML parsing. Brand styling by Websity Digital.</div>
+        <div>Note: server/OS/DB detection is limited without a backend. This is a front-end-only demo.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 🔑 Add your Google PageSpeed API key here (or leave empty for low-quota keyless mode)
+    const API_KEY = "AIzaSyCNd_8Sa3tl5HihwN8AebqFhQM28WoChG4";
+
+    const urlInput = document.getElementById("urlInput");
+    const runBtn = document.getElementById("runBtn");
+    const messageBox = document.getElementById("message");
+    const toolbar = document.getElementById("toolbar");
+    const reportEl = document.getElementById("report");
+
+    const btnMobile = document.getElementById("btnMobile");
+    const btnDesktop = document.getElementById("btnDesktop");
+    const pdfBtn = document.getElementById("pdfBtn");
+
+    // overview elements
+    const reportUrlEl = document.getElementById("reportUrl");
+    const langVal = document.getElementById("langVal");
+    const indexableVal = document.getElementById("indexableVal");
+    const metaTitleEl = document.getElementById("metaTitle");
+    const metaTitleLenEl = document.getElementById("metaTitleLen");
+    const metaDescEl = document.getElementById("metaDesc");
+    const metaDescLenEl = document.getElementById("metaDescLen");
+    const canonicalVal = document.getElementById("canonicalVal");
+    const robotsVal = document.getElementById("robotsVal");
+    const xrobotsVal = document.getElementById("xrobotsVal");
+    const wordCountVal = document.getElementById("wordCountVal");
+    const charCountVal = document.getElementById("charCountVal");
+
+    const overallBadge = document.getElementById("overallBadge");
+    const scoreLabel = document.getElementById("scoreLabel");
+    const overallScoreEl = document.getElementById("overallScore");
+    const overallDot = document.getElementById("overallDot");
+    const perfDot = document.getElementById("perfDot");
+    const seoDot = document.getElementById("seoDot");
+    const perfScoreEl = document.getElementById("perfScore");
+    const seoScoreEl = document.getElementById("seoScore");
+    const lcpVal = document.getElementById("lcpVal");
+    const fcpVal = document.getElementById("fcpVal");
+    const clsVal = document.getElementById("clsVal");
+    const tbtVal = document.getElementById("tbtVal");
+    const lcpChip = document.getElementById("lcpChip");
+    const fcpChip = document.getElementById("fcpChip");
+    const clsChip = document.getElementById("clsChip");
+    const tbtChip = document.getElementById("tbtChip");
+
+    // PageSpeed issues
+    const issuesList = document.getElementById("issuesList");
+    const issuesCount = document.getElementById("issuesCount");
+
+    // headings
+    const headingsTable = document.getElementById("headingsTable");
+    const headingCounts = document.getElementById("headingCounts");
+    const h1Warning = document.getElementById("h1Warning");
+
+    // links
+    const linksTable = document.getElementById("linksTable");
+    const linkSummary = document.getElementById("linkSummary");
+
+    // images
+    const imagesTable = document.getElementById("imagesTable");
+    const imageSummary = document.getElementById("imageSummary");
+    const imageHint = document.getElementById("imageHint");
+
+    // schema
+    const schemaSummary = document.getElementById("schemaSummary");
+    const schemaTypes = document.getElementById("schemaTypes");
+
+    // social
+    const ogTable = document.getElementById("ogTable");
+    const twTable = document.getElementById("twTable");
+
+    // tech
+    const techSummary = document.getElementById("techSummary");
+    const techGrid = document.getElementById("techGrid");
+
+    let auditData = null;
+    let activeStrategy = "mobile";
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        runBtn.disabled = true;
+        runBtn.innerHTML = '<span class="loader"></span><span>Auditing…</span>';
+        messageBox.style.display = "block";
+        messageBox.classList.remove("error");
+        messageBox.innerHTML = "<strong>Running PageSpeed + HTML audit…</strong> This can take a few seconds.";
+      } else {
+        runBtn.disabled = false;
+        runBtn.innerHTML = "<span>Run full audit</span>";
+      }
+    }
+    function showError(msg) {
+      messageBox.style.display = "block";
+      messageBox.classList.add("error");
+      messageBox.innerHTML = "<strong>Error:</strong> " + msg;
+      toolbar.style.display = "none";
+      reportEl.style.display = "none";
+    }
+    function clearMessage() {
+      messageBox.style.display = "none";
+      messageBox.classList.remove("error");
+      messageBox.innerHTML = "";
+    }
+    function msToSec(ms) {
+      if (ms === undefined || ms === null) return null;
+      return (ms / 1000).toFixed(2) + "s";
+    }
+    function getScoreColor(score) {
+      if (score === null || score === undefined || isNaN(score)) return "bad";
+      if (score >= 90) return "good";
+      if (score >= 50) return "ok";
+      return "bad";
+    }
+    function setScoreDot(el, score) {
+      el.className = "score-dot " + getScoreColor(score);
+    }
+    function classifyMetric(name, value, unit) {
+      if (value == null) return { badge: "", severity: "ok" };
+      const num = parseFloat(value);
+      if (unit === "s") {
+        if (num <= 2.5) return { badge: "Good", severity: "good" };
+        if (num <= 4) return { badge: "Needs work", severity: "ok" };
+        return { badge: "Poor", severity: "bad" };
+      }
+      if (name === "CLS") {
+        if (num <= 0.1) return { badge: "Good", severity: "good" };
+        if (num <= 0.25) return { badge: "Needs work", severity: "ok" };
+        return { badge: "Poor", severity: "bad" };
+      }
+      if (name === "TBT") {
+        if (num <= 300) return { badge: "Good", severity: "good" };
+        if (num <= 600) return { badge: "Needs work", severity: "ok" };
+        return { badge: "Poor", severity: "bad" };
+      }
+      return { badge: "", severity: "ok" };
+    }
+    function setMetric(elVal, elChip, raw, formatted, name, unit) {
+      elVal.textContent = formatted ?? "–";
+      const meta = classifyMetric(name, raw, unit);
+      elChip.textContent = meta.badge || name;
+      elChip.className = "chip-metric " + (meta.severity === "good" ? "good" : meta.severity === "ok" ? "ok" : "bad");
+    }
+
+    async function fetchPageSpeed(url, strategy) {
+      const apiUrl = new URL("https://www.googleapis.com/pagespeedonline/v5/runPagespeed");
+      apiUrl.searchParams.set("url", url);
+      apiUrl.searchParams.set("strategy", strategy);
+      apiUrl.searchParams.append("category", "performance");
+      apiUrl.searchParams.append("category", "seo");
+      if (API_KEY) apiUrl.searchParams.set("key", API_KEY);
+      const res = await fetch(apiUrl.toString());
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error("PageSpeed API error (" + res.status + "): " + text);
+      }
+      const data = await res.json();
+      if (!data.lighthouseResult) throw new Error("No Lighthouse result for " + strategy);
+      return data;
+    }
+
+    async function fetchHtml(url) {
+      // Free CORS proxy – good for testing
+      const proxyUrl = "https://websity-audit-tool.abdulrehman-79b.workers.dev/?url=" + encodeURIComponent(url);
+      const res = await fetch(proxyUrl);
+      if (!res.ok) throw new Error("Could not fetch HTML via proxy");
+      return res.text();
+    }
+
+    function extractOnPage(doc, html, url) {
+      const text = doc.body ? doc.body.textContent.replace(/\s+/g, " ").trim() : "";
+      const wordCount = text ? text.split(" ").length : 0;
+      const title = doc.querySelector("title")?.textContent.trim() || "";
+      const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute("content") || "";
+      const robotsMeta = doc.querySelector('meta[name="robots"]')?.getAttribute("content") || "";
+      const lang = doc.documentElement.getAttribute("lang") ||
+        doc.querySelector('meta[http-equiv="content-language"]')?.getAttribute("content") || "";
+      const canonical = doc.querySelector('link[rel="canonical"]')?.getAttribute("href") || "";
+      const keywords = doc.querySelector('meta[name="keywords"]')?.getAttribute("content") || null;
+
+      // headings
+      const headingItems = [];
+      const levels = ["h1","h2","h3","h4","h5","h6"];
+      levels.forEach(level => {
+        doc.querySelectorAll(level).forEach(el => {
+          headingItems.push({
+            level,
+            text: (el.textContent || "").trim() || "(empty)"
+          });
+        });
+      });
+      const counts = headingItems.reduce((acc,h)=>{
+        acc[h.level] = (acc[h.level]||0)+1;
+        return acc;
+      }, {h1:0,h2:0,h3:0,h4:0,h5:0,h6:0});
+
+      // links
+      const linkItems = [];
+      const origin = new URL(url).origin;
+      doc.querySelectorAll("a[href]").forEach(a => {
+        const href = a.getAttribute("href");
+        if (!href || href.startsWith("#") || href.startsWith("javascript:")) return;
+        try {
+          const absolute = new URL(href, url).href;
+          const type = absolute.startsWith(origin) ? "internal" : "external";
+          linkItems.push({
+            url: absolute,
+            anchor: (a.textContent || "").trim() || null,
+            type
+          });
+        } catch(e) {}
+      });
+
+      // images
+      const imageItems = [];
+      doc.querySelectorAll("img[src]").forEach(img => {
+        const src = img.getAttribute("src");
+        try {
+          const abs = new URL(src, url).href;
+          imageItems.push({
+            src: abs,
+            alt: img.getAttribute("alt") || "",
+            title: img.getAttribute("title") || ""
+          });
+        } catch(e){}
+      });
+      const imageStats = {
+        total: imageItems.length,
+        withAlt: imageItems.filter(i => i.alt && i.alt.trim()).length,
+        withoutAlt: imageItems.filter(i => !i.alt || !i.alt.trim()).length,
+        withTitle: imageItems.filter(i => i.title && i.title.trim()).length,
+        withoutTitle: imageItems.filter(i => !i.title || !i.title.trim()).length
+      };
+
+      // schema
+      const schemaBlocks = [];
+      doc.querySelectorAll('script[type="application/ld+json"]').forEach(script => {
+        try {
+          const json = JSON.parse(script.textContent);
+          if (Array.isArray(json)) schemaBlocks.push(...json);
+          else schemaBlocks.push(json);
+        } catch(e){}
+      });
+      const schemaTypesSet = new Set();
+      schemaBlocks.forEach(b => {
+        if (b["@graph"]) {
+          b["@graph"].forEach(x => {
+            if (x["@type"]) {
+              if (Array.isArray(x["@type"])) x["@type"].forEach(t=>schemaTypesSet.add(t));
+              else schemaTypesSet.add(x["@type"]);
+            }
+          });
+        } else if (b["@type"]) {
+          if (Array.isArray(b["@type"])) b["@type"].forEach(t=>schemaTypesSet.add(t));
+          else schemaTypesSet.add(b["@type"]);
+        }
+      });
+
+      // OG & Twitter
+      const og = {};
+      doc.querySelectorAll('meta[property^="og:"]').forEach(m => {
+        const prop = m.getAttribute("property");
+        og[prop] = m.getAttribute("content") || "";
+      });
+      const twitter = {};
+      doc.querySelectorAll('meta[name^="twitter:"]').forEach(m => {
+        const name = m.getAttribute("name");
+        twitter[name] = m.getAttribute("content") || "";
+      });
+
+      // robots.txt & sitemap presence (best-effort: check links)
+      const hasRobotsTxt = !!doc.querySelector('a[href*="robots.txt"]') || url.endsWith("/robots.txt");
+      const hasSitemapXml = !!doc.querySelector('a[href*="sitemap.xml"]') || url.endsWith("/sitemap.xml");
+
+      return {
+        overview: {
+          title,
+          titleLength: title.length,
+          description: metaDesc,
+          descriptionLength: metaDesc.length,
+          url,
+          indexable: !robotsMeta || !/noindex/i.test(robotsMeta),
+          canonical,
+          keywords,
+          robotsMeta,
+          xRobotsTag: null, // headers not available on frontend
+          language: lang,
+          wordCount,
+          characterCount: html.length,
+          hasRobotsTxt,
+          hasSitemapXml
+        },
+        headings: { counts, items: headingItems },
+        links: {
+          total: linkItems.length,
+          internal: linkItems.filter(l=>l.type==="internal").length,
+          external: linkItems.filter(l=>l.type==="external").length,
+          unique: new Set(linkItems.map(l=>l.url)).size,
+          items: linkItems
+        },
+        images: {
+          ...imageStats,
+          items: imageItems
+        },
+        schema: {
+          raw: schemaBlocks,
+          types: Array.from(schemaTypesSet)
+        },
+        social: { openGraph: og, twitter }
+      };
+    }
+
+    function detectTechnologies(doc, html) {
+      const tech = {
+        cms: [],
+        analytics: [],
+        tagManagers: [],
+        pageBuilder: [],
+        seo: [],
+        javascriptLibraries: [],
+        cookieCompliance: [],
+        scheduling: [],
+        fontScripts: [],
+        cdn: [],
+        wordpressTheme: [],
+        wordpressPlugins: []
+      };
+      const lowerHtml = html.toLowerCase();
+
+      // CMS: WordPress
+      if (lowerHtml.includes("/wp-content/") || lowerHtml.includes("/wp-includes/")) {
+        tech.cms.push({ name: "WordPress" });
+      }
+
+      // GA4
+      if (lowerHtml.includes("www.googletagmanager.com/gtag/js") || lowerHtml.includes("gtag(")) {
+        tech.analytics.push({ name: "Google Analytics", variant: "GA4" });
+      }
+
+      // Facebook Pixel
+      if (lowerHtml.includes("connect.facebook.net") && lowerHtml.includes("fbq(")) {
+        tech.analytics.push({ name: "Facebook Pixel" });
+      }
+
+      // Hotjar
+      if (lowerHtml.includes("static.hotjar.com") || lowerHtml.includes("hotjar.com/c/hotjar-")) {
+        tech.analytics.push({ name: "Hotjar" });
+      }
+
+      // GTM
+      if (lowerHtml.includes("www.googletagmanager.com/gtm.js")) {
+        tech.tagManagers.push({ name: "Google Tag Manager" });
+      }
+
+      // Elementor
+      if (lowerHtml.includes("elementor/frontend.min.js") || lowerHtml.includes("elementor-css")) {
+        tech.pageBuilder.push({ name: "Elementor" });
+      }
+
+      // RankMath
+      if (lowerHtml.includes("rank-math")) {
+        tech.seo.push({ name: "RankMath SEO" });
+      }
+
+      // CookieYes
+      if (lowerHtml.includes("cookieyes.com") || lowerHtml.includes("cky-consent")) {
+        tech.cookieCompliance.push({ name: "CookieYes" });
+      }
+
+      // Calendly
+      if (lowerHtml.includes("calendly.com/assets/external/widget")) {
+        tech.scheduling.push({ name: "Calendly" });
+      }
+
+      // Fonts
+      doc.querySelectorAll('link[href*="fonts.googleapis.com"],link[href*="fonts.gstatic.com"]').forEach(() => {
+        tech.fontScripts.push({ name: "Google Font API" });
+      });
+
+      // jQuery & libs
+      if (lowerHtml.includes("jquery.min.js") || lowerHtml.includes("jquery.js")) {
+        tech.javascriptLibraries.push({ name: "jQuery" });
+      }
+      if (lowerHtml.includes("jquery-ui.min.js")) {
+        tech.javascriptLibraries.push({ name: "jQuery UI" });
+      }
+      if (lowerHtml.includes("jquery-migrate")) {
+        tech.javascriptLibraries.push({ name: "jQuery Migrate" });
+      }
+      if (lowerHtml.includes("swiper-bundle") || lowerHtml.includes("swiper.min.js")) {
+        tech.javascriptLibraries.push({ name: "Swiper" });
+      }
+      if (lowerHtml.includes("lottie") || lowerHtml.includes("lottiefiles.com")) {
+        tech.javascriptLibraries.push({ name: "LottieFiles" });
+      }
+      if (lowerHtml.includes("core-js")) {
+        tech.javascriptLibraries.push({ name: "core-js" });
+      }
+
+      // jsDelivr
+      if (lowerHtml.includes("cdn.jsdelivr.net")) {
+        tech.cdn.push({ name: "jsDelivr" });
+      }
+
+      // WordPress theme & plugins
+      doc.querySelectorAll('link[href*="/wp-content/themes/"]').forEach(el => {
+        const href = el.getAttribute("href") || "";
+        const match = href.match(/\/wp-content\/themes\/([^/]+)/);
+        if (match) tech.wordpressTheme.push({ name: match[1] });
+      });
+      doc.querySelectorAll('link[href*="/wp-content/plugins/"],script[src*="/wp-content/plugins/"]').forEach(el => {
+        const src = el.getAttribute("href") || el.getAttribute("src") || "";
+        const match = src.match(/\/wp-content\/plugins\/([^/]+)/);
+        if (match) tech.wordpressPlugins.push({ name: match[1] });
+      });
+
+      return tech;
+    }
+
+    async function runAudit() {
+      clearMessage();
+      let raw = urlInput.value.trim();
+      if (!raw) {
+        showError("Please enter a URL (example: websitydigital.com or https://websitydigital.com).");
+        return;
+      }
+      if (!/^https?:\/\//i.test(raw)) raw = "https://" + raw;
+      const url = raw;
+
+      setLoading(true);
+      auditData = null;
+
+      try {
+        const [mobilePS, desktopPS, html] = await Promise.all([
+          fetchPageSpeed(url, "mobile"),
+          fetchPageSpeed(url, "desktop"),
+          fetchHtml(url)
+        ]);
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const onPage = extractOnPage(doc, html, url);
+        const technologies = detectTechnologies(doc, html);
+
+        auditData = {
+          url,
+          pagespeed: { mobile: mobilePS, desktop: desktopPS },
+          onPage,
+          technologies
+        };
+
+        activeStrategy = "mobile";
+        btnMobile.classList.add("active");
+        btnDesktop.classList.remove("active");
+
+        toolbar.style.display = "flex";
+        reportEl.style.display = "block";
+
+        renderView();
+        messageBox.style.display = "block";
+        messageBox.classList.remove("error");
+        messageBox.innerHTML = "<strong>Audit complete.</strong> Use tabs to explore and export as PDF for clients.";
+      } catch (err) {
+        console.error(err);
+        showError(err.message || "Something went wrong while running the audit.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function getPSSnapshot() {
+      if (!auditData) return null;
+      const data = activeStrategy === "mobile"
+        ? auditData.pagespeed.mobile
+        : auditData.pagespeed.desktop;
+      const lh = data.lighthouseResult;
+      const cats = lh.categories || {};
+      const perfScore = cats.performance ? Math.round((cats.performance.score || 0) * 100) : null;
+      const seoScore = cats.seo ? Math.round((cats.seo.score || 0) * 100) : null;
+      const overall = (perfScore != null && seoScore != null)
+        ? Math.round((perfScore + seoScore) / 2)
+        : perfScore || seoScore;
+
+      const audits = lh.audits || {};
+      const lcpAudit = audits["largest-contentful-paint"];
+      const fcpAudit = audits["first-contentful-paint"];
+      const clsAudit = audits["cumulative-layout-shift"];
+      const tbtAudit = audits["total-blocking-time"];
+
+      const lcpMs = lcpAudit ? lcpAudit.numericValue : null;
+      const fcpMs = fcpAudit ? fcpAudit.numericValue : null;
+      const clsScore = clsAudit ? clsAudit.numericValue : null;
+      const tbtMs = tbtAudit ? tbtAudit.numericValue : null;
+
+      // opportunities + diagnostics
+      const opportunities = Object.values(audits)
+        .filter(a => a.details && a.details.type === "opportunity")
+        .map(a => ({
+          title: a.title,
+          description: a.description,
+          savingsMs: a.details.overallSavingsMs || 0
+        }));
+
+      const diagnostics = Object.values(audits)
+        .filter(a => a.scoreDisplayMode === "numeric" && typeof a.score === "number" && a.score < 0.9)
+        .filter(a => !a.details || a.details.type !== "opportunity")
+        .map(a => ({
+          title: a.title,
+          description: a.description,
+          score: a.score
+        }));
+
+      return {
+        overall, perfScore, seoScore,
+        lcpMs, fcpMs, clsScore, tbtMs,
+        opportunities, diagnostics
+      };
+    }
+
+    function renderOverview() {
+      if (!auditData) return;
+      const ps = getPSSnapshot();
+      const on = auditData.onPage;
+
+      reportUrlEl.textContent = auditData.url;
+      langVal.textContent = on.overview.language || "Not set";
+      indexableVal.textContent = on.overview.indexable ? "Yes" : "No (noindex)";
+      metaTitleEl.textContent = on.overview.title || "(missing)";
+      metaTitleLenEl.textContent = on.overview.titleLength + " characters";
+      metaDescEl.textContent = on.overview.description || "(missing)";
+      metaDescLenEl.textContent = on.overview.descriptionLength + " characters";
+      canonicalVal.textContent = on.overview.canonical || "(none)";
+      robotsVal.textContent = on.overview.robotsMeta || "(none)";
+      xrobotsVal.textContent = "(not available in front-end only mode)";
+      wordCountVal.textContent = on.overview.wordCount;
+      charCountVal.textContent = on.overview.characterCount;
+
+      const overall = ps.overall;
+      overallScoreEl.textContent = overall != null ? overall : "–";
+      overallBadge.textContent = overall != null
+        ? `Overall ${overall}/100 – ${activeStrategy === "mobile" ? "Mobile" : "Desktop"}`
+        : "";
+      overallDot.className = "score-dot " + getScoreColor(overall);
+
+      perfScoreEl.textContent = ps.perfScore != null ? ps.perfScore : "–";
+      seoScoreEl.textContent = ps.seoScore != null ? ps.seoScore : "–";
+      setScoreDot(perfDot, ps.perfScore);
+      setScoreDot(seoDot, ps.seoScore);
+
+      setMetric(lcpVal, lcpChip, ps.lcpMs ? ps.lcpMs/1000 : null, msToSec(ps.lcpMs), "LCP", "s");
+      setMetric(fcpVal, fcpChip, ps.fcpMs ? ps.fcpMs/1000 : null, msToSec(ps.fcpMs), "FCP", "s");
+      setMetric(clsVal, clsChip, ps.clsScore, ps.clsScore != null ? ps.clsScore.toFixed(3) : null, "CLS", "");
+      setMetric(tbtVal, tbtChip, ps.tbtMs, ps.tbtMs != null ? ps.tbtMs.toFixed(0) + " ms" : null, "TBT", "ms");
+
+      scoreLabel.textContent = activeStrategy === "mobile" ? "Mobile snapshot" : "Desktop snapshot";
+    }
+
+    function renderPageSpeed() {
+      if (!auditData) return;
+      const ps = getPSSnapshot();
+      const all = [];
+      ps.opportunities.forEach(o => {
+        all.push({
+          title: o.title,
+          description: o.description,
+          savingsMs: o.savingsMs,
+          severity: "high"
+        });
+      });
+      ps.diagnostics.forEach(d => {
+        all.push({
+          title: d.title,
+          description: d.description,
+          savingsMs: 0,
+          severity: d.score < 0.5 ? "medium" : "low"
+        });
+      });
+      all.sort((a,b) => (b.savingsMs||0) - (a.savingsMs||0));
+      issuesCount.textContent = all.length
+        ? `${all.length} key findings`
+        : "No major issues – nice! 🎉";
+      issuesList.innerHTML = "";
+      if (!all.length) {
+        issuesList.innerHTML = "<div class='issue'><div class='issue-text'>Lighthouse did not flag major issues for this view.</div></div>";
+        return;
+      }
+      all.forEach((issue, i) => {
+        const row = document.createElement("div");
+        row.className = "issue";
+        const label = document.createElement("div");
+        label.className = "issue-label";
+        label.textContent = (i+1) + ". " + issue.title;
+        const sev = document.createElement("span");
+        sev.className = "severity " + issue.severity;
+        sev.textContent =
+          issue.severity === "high" ? "High impact" :
+          issue.severity === "medium" ? "Medium impact" :
+          "Low impact";
+        label.appendChild(sev);
+        const text = document.createElement("div");
+        text.className = "issue-text";
+        text.textContent = issue.description || "";
+        if (issue.savingsMs && issue.savingsMs > 0) {
+          const s = document.createElement("div");
+          s.style.fontSize = "11px";
+          s.style.color = "var(--text-muted)";
+          s.textContent = "Estimated savings: " + msToSec(issue.savingsMs);
+          text.appendChild(document.createElement("br"));
+          text.appendChild(s);
+        }
+        row.appendChild(label);
+        row.appendChild(text);
+        issuesList.appendChild(row);
+      });
+    }
+
+    function renderHeadings() {
+      if (!auditData) return;
+      const h = auditData.onPage.headings;
+      headingCounts.textContent =
+        `H1: ${h.counts.h1 || 0} · H2: ${h.counts.h2 || 0} · H3: ${h.counts.h3 || 0} · H4: ${h.counts.h4 || 0} · H5: ${h.counts.h5 || 0} · H6: ${h.counts.h6 || 0}`;
+      if ((h.counts.h1 || 0) === 0) {
+        h1Warning.innerHTML = "<span class='pill-small danger'>⚠ H1 is missing!</span> Add a clear, primary heading for this page.";
+      } else {
+        h1Warning.innerHTML = "";
+      }
+      headingsTable.innerHTML = "";
+      if (!h.items.length) {
+        headingsTable.innerHTML = "<tr><td colspan='2'>No headings found on this page.</td></tr>";
+        return;
+      }
+      h.items.forEach(item => {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        td1.textContent = item.level.toUpperCase();
+        const td2 = document.createElement("td");
+        td2.textContent = item.text;
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        headingsTable.appendChild(tr);
+      });
+    }
+
+    function renderLinks() {
+      if (!auditData) return;
+      const l = auditData.onPage.links;
+      linkSummary.textContent =
+        `${l.total} links · ${l.internal} internal · ${l.external} external · ${l.unique} unique`;
+      linksTable.innerHTML = "";
+      if (!l.items.length) {
+        linksTable.innerHTML = "<tr><td colspan='3'>No links found.</td></tr>";
+        return;
+      }
+      l.items.forEach(item => {
+        const tr = document.createElement("tr");
+        const tdType = document.createElement("td");
+        tdType.textContent = item.type;
+        const tdAnchor = document.createElement("td");
+        tdAnchor.textContent = item.anchor || "(no anchor text)";
+        const tdUrl = document.createElement("td");
+        tdUrl.innerHTML = `<span class="mono">${item.url}</span>`;
+        tr.appendChild(tdType);
+        tr.appendChild(tdAnchor);
+        tr.appendChild(tdUrl);
+        linksTable.appendChild(tr);
+      });
+    }
+
+    function renderImages() {
+      if (!auditData) return;
+      const im = auditData.onPage.images;
+      imageSummary.textContent =
+        `${im.total} images · ${im.withAlt} with alt · ${im.withoutAlt} missing alt`;
+      imageHint.textContent =
+        `Aim to give descriptive alt text to all key images. Right now, ${im.withoutAlt} image(s) have no alt.`;
+      imagesTable.innerHTML = "";
+      if (!im.items.length) {
+        imagesTable.innerHTML = "<tr><td colspan='4'>No images found.</td></tr>";
+        return;
+      }
+      im.items.forEach((img, idx) => {
+        const tr = document.createElement("tr");
+        const tdIdx = document.createElement("td");
+        tdIdx.textContent = idx+1;
+        const tdAlt = document.createElement("td");
+        tdAlt.textContent = img.alt || "(empty)";
+        const tdTitle = document.createElement("td");
+        tdTitle.textContent = img.title || "(empty)";
+        const tdSrc = document.createElement("td");
+        tdSrc.innerHTML = `<span class="mono">${img.src}</span>`;
+        tr.appendChild(tdIdx);
+        tr.appendChild(tdAlt);
+        tr.appendChild(tdTitle);
+        tr.appendChild(tdSrc);
+        imagesTable.appendChild(tr);
+      });
+    }
+
+    function renderSchema() {
+      if (!auditData) return;
+      const s = auditData.onPage.schema;
+      schemaSummary.textContent = s.raw.length
+        ? `${s.raw.length} JSON-LD block(s) · Types: ${s.types.join(", ")}`
+        : "No JSON-LD schema detected";
+      if (s.types.length) {
+        schemaTypes.innerHTML =
+          `<strong>Detected @type:</strong> ${s.types.join(", ")}`;
+      } else {
+        schemaTypes.innerHTML =
+          "No structured data types detected. For business sites, add Organization, WebSite, and WebPage schema at minimum.";
+      }
+    }
+
+    function renderSocial() {
+      if (!auditData) return;
+      const og = auditData.onPage.social.openGraph || {};
+      const tw = auditData.onPage.social.twitter || {};
+      ogTable.innerHTML = "";
+      Object.keys(og).forEach(key => {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        td1.textContent = key;
+        const td2 = document.createElement("td");
+        td2.textContent = og[key];
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        ogTable.appendChild(tr);
+      });
+      if (!Object.keys(og).length) {
+        ogTable.innerHTML = "<tr><td colspan='2'>No Open Graph tags found.</td></tr>";
+      }
+      twTable.innerHTML = "";
+      Object.keys(tw).forEach(key => {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        td1.textContent = key;
+        const td2 = document.createElement("td");
+        td2.textContent = tw[key];
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        twTable.appendChild(tr);
+      });
+      if (!Object.keys(tw).length) {
+        twTable.innerHTML = "<tr><td colspan='2'>No Twitter tags found.</td></tr>";
+      }
+    }
+
+    function renderTech() {
+      if (!auditData) return;
+      const t = auditData.technologies;
+      techGrid.innerHTML = "";
+      let count = 0;
+      const addBlock = (title, items) => {
+        if (!items || !items.length) return;
+        const block = document.createElement("div");
+        block.className = "tech-block";
+        const titleEl = document.createElement("div");
+        titleEl.className = "tech-title";
+        titleEl.textContent = title;
+        block.appendChild(titleEl);
+        items.forEach(it => {
+          const row = document.createElement("div");
+          row.className = "tech-item";
+          const name = document.createElement("span");
+          name.textContent = it.name;
+          row.appendChild(name);
+          if (it.variant || it.version) {
+            const sub = document.createElement("span");
+            sub.className = "sub";
+            sub.textContent = " · " + (it.variant || it.version);
+            row.appendChild(sub);
+          }
+          block.appendChild(row);
+          count++;
+        });
+        techGrid.appendChild(block);
+      };
+      addBlock("CMS", t.cms);
+      addBlock("Analytics", t.analytics);
+      addBlock("Tag managers", t.tagManagers);
+      addBlock("Page builder", t.pageBuilder);
+      addBlock("SEO tools", t.seo);
+      addBlock("JS libraries", t.javascriptLibraries);
+      addBlock("Cookie compliance", t.cookieCompliance);
+      addBlock("Scheduling", t.scheduling);
+      addBlock("Font scripts", t.fontScripts);
+      addBlock("CDN", t.cdn);
+      addBlock("WordPress themes", t.wordpressTheme);
+      addBlock("WordPress plugins", t.wordpressPlugins);
+      techSummary.textContent = count
+        ? `${count} tech item(s) detected`
+        : "No technologies detected from HTML signatures.";
+    }
+
+    function renderView() {
+      if (!auditData) return;
+      renderOverview();
+      renderPageSpeed();
+      renderHeadings();
+      renderLinks();
+      renderImages();
+      renderSchema();
+      renderSocial();
+      renderTech();
+    }
+
+    async function downloadPDF() {
+      if (!reportEl || reportEl.style.display === "none") return;
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) {
+        alert("jsPDF failed to load. Check your internet connection.");
+        return;
+      }
+      const canvas = await html2canvas(reportEl, {
+        scale: 2,
+        backgroundColor: "#020617"
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p","mm","a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = canvas.height * pdfWidth / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("websity-audit-report.pdf");
+    }
+
+    // Event wiring
+    runBtn.addEventListener("click", runAudit);
+    urlInput.addEventListener("keypress", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runAudit();
+      }
+    });
+    btnMobile.addEventListener("click", () => {
+      if (!auditData) return;
+      activeStrategy = "mobile";
+      btnMobile.classList.add("active");
+      btnDesktop.classList.remove("active");
+      renderView();
+    });
+    btnDesktop.addEventListener("click", () => {
+      if (!auditData) return;
+      activeStrategy = "desktop";
+      btnDesktop.classList.add("active");
+      btnMobile.classList.remove("active");
+      renderView();
+    });
+    pdfBtn.addEventListener("click", downloadPDF);
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (!auditData) return;
+        const tab = btn.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        document.getElementById("panel-" + tab).classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>
